@@ -1,0 +1,35 @@
+name: Eclipse Nebular Aurora Android Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Locate and extract Cloud Build archive
+        run: |
+          ZIP=$(find . -maxdepth 2 -name 'Eclipse_Nebular_Aurora_v0_1_CloudBuild.zip' -print -quit)
+          test -n "$ZIP"
+          unzip -q "$ZIP" -d extracted
+          cd extracted/aurora_build
+          echo "BUILD_DIR=$PWD" >> "$GITHUB_ENV"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies and build Android pack
+        run: |
+          cd extracted/aurora_build
+          python -m pip install -r requirements.txt
+          ./build.sh setup
+          ./build.sh mats -p android
+          ./build.sh pack -p android -v 1
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eclipse-Nebular-Aurora-Android
+          path: extracted/aurora_build/build/*.mcpack
+          if-no-files-found: error
