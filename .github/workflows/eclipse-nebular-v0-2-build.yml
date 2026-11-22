@@ -1,0 +1,44 @@
+
+name: Eclipse Nebular Aurora v0.2 Experimental Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Locate and extract v0.2 source
+        run: |
+          ZIP=$(find . -maxdepth 4 -type f -name 'Eclipse_Nebular_Aurora_v0_2.zip' | head -n 1)
+          test -n "$ZIP"
+          unzip -q "$ZIP" -d extracted
+          BUILD_DIR=$(find extracted -type f -name build.sh -printf '%h\n' | head -n 1)
+          test -n "$BUILD_DIR"
+          echo "BUILD_DIR=$BUILD_DIR" >> "$GITHUB_ENV"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies and build Android
+        run: |
+          cd "$BUILD_DIR"
+          chmod +x ./build.sh
+          python -m pip install -r requirements.txt
+          ./build.sh setup
+          ./build.sh mats -p android
+          ./build.sh pack -p android -v 2
+
+      - name: Upload v0.2 experimental build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eclipse-Nebular-Aurora-v0.2-Experimental
+          path: ${{ env.BUILD_DIR }}/build/*.mcpack
+          if-no-files-found: error
+          
