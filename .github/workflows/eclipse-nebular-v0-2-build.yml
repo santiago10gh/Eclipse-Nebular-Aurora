@@ -14,7 +14,7 @@ jobs:
 
       - name: Locate and extract v0.2 source
         run: |
-          ZIP=$(find . -maxdepth 4 -type f -name 'Eclipse_Nebular_Aurora_v0_2.zip' | head -n 1)
+          ZIP=$(find . -maxdepth 4 -type f -name 'Eclipse_Nebular_Aurora_v0_2_Clouds_Experimental.zip' | head -n 1)
           test -n "$ZIP"
           unzip -q "$ZIP" -d extracted
           BUILD_DIR=$(find extracted -type f -name build.sh -printf '%h\n' | head -n 1)
